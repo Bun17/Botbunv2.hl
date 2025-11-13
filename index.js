@@ -6,102 +6,40 @@ const PORT = process.env.PORT || 3000;
 
 const config = {
   channelAccessToken: "ここにあなたのアクセストークン",
-  channelSecret: "ここにあなたのチャンネルシークレット"
+  channelSecret: "ここにあなたのチャンネルシークレット",
 };
 
 const client = new line.Client(config);
 
+// POST /webhook
 app.post("/webhook", line.middleware(config), (req, res) => {
-  Promise.all(req.body.events.map(handleEvent)).then((result) => res.json(result));
+  Promise.all(req.body.events.map(handleEvent))
+    .then((result) => res.json(result))
+    .catch((err) => {
+      console.error(err);
+      res.status(500).end();
+    });
 });
 
-function getRandomCard() {
-  return Math.floor(Math.random() * 13) + 1; // 1〜13
-}
-
 function handleEvent(event) {
-  if (event.type !== "message" || event.message.type !== "text") return;
-
-  const msg = event.message.text.trim();
-
-  // スタート
-  if (msg === "スタート") {
-    const current = getRandomCard();
-    event.source.userId; // ユーザー識別にも使える
-    return client.replyMessage(event.replyToken, {
-      type: "text",
-      text: `🎰 ハイ＆ローゲーム開始！\nカードは「${current}」！\n次は高い？低い？`
-    });
-  }
-
-  // 高い・低い
-  if (msg === "高い" || msg === "低い") {
-    const current = getRandomCard();
-    const next = getRandomCard();
-
-    const isCorrect =
-      (msg === "高い" && next > current) || (msg === "低い" && next < current);
-
-    const result = isCorrect ? "🎉 あたり！" : "💦 ハズレ！";
-
-    return client.replyMessage(event.replyToken, {
-      type: "text",
-      text: `今のカード：${current}\n次のカード：${next}\n${result}\nゲーム終了！🎮`
-    });
-  }
-
-  // その他
-  return client.replyMessage(event.replyToken, {
-    type: "text",
-    text: "「スタート」でゲームを始めよう！"
-  });
-}
-
-app.listen(PORT, () => console.log(`Hi-Lo Bot running on ${PORT}`));
-
-import express from "express";
-import line from "@line/bot-sdk";
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-const config = {
-  channelAccessToken: "ここにあなたのアクセストークン",
-  channelSecret: "ここにあなたのチャンネルシークレット"
-};
-
-const client = new line.Client(config);
-
-// 受け取るデータをJSONとして扱う
-app.use(express.json());
-
-// webhookエンドポイント
-app.post("/webhook", line.middleware(config), (req, res) => {
-  Promise.all(req.body.events.map(handleEvent)).then((result) =>
-    res.json(result)
-  );
-});
-
-// 🎲 ハイローゲームのロジック
-function handleEvent(event) {
+  // メッセージイベント以外は無視
   if (event.type !== "message" || event.message.type !== "text") {
     return Promise.resolve(null);
   }
 
-  const userMessage = event.message.text.trim();
-
-  if (userMessage === "ハイロー") {
-    const card = Math.floor(Math.random() * 13) + 1; // 1〜13
-    const nextCard = Math.floor(Math.random() * 13) + 1;
-    const result = nextCard > card ? "HIGH!" : nextCard < card ? "LOW!" : "DRAW!";
-    const text = `🎰 あなたのカードは ${card}！\n次のカードは… ${nextCard}！\n結果は ${result}`;
-    return client.replyMessage(event.replyToken, { type: "text", text });
+  // メッセージが「ハイロー」なら応答
+  if (event.message.text === "ハイロー") {
+    const result = Math.random() < 0.5 ? "High（あたり！）" : "Low（はずれ…）";
+    return client.replyMessage(event.replyToken, {
+      type: "text",
+      text: `結果は… ${result}`,
+    });
   }
 
-  // 「ハイロー」以外のメッセージには説明を返す
+  // それ以外のメッセージは普通に返す
   return client.replyMessage(event.replyToken, {
     type: "text",
-    text: "「ハイロー」と送ると1回だけ運試しできます🎲"
+    text: `「${event.message.text}」って言ったね！`,
   });
 }
 
