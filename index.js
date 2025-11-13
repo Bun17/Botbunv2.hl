@@ -5,8 +5,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 const config = {
-  channelAccessToken: "ここにあなたのアクセストークン",
-  channelSecret: "ここにあなたのチャンネルシークレット",
+  channelAccessToken: "aBVmnFAYYAOXkHhlO+U+pFiOKiD+52yjgmiDr0J27ADr9v2YLsDthuaWo1V1tX2cgT7IhRK9YgwkbKqhyRfbJV1vnl2+upoPMMBK3nnkeu2PpCwR7JW9aZhdICzSkXP9qjf/woE+ig1t0c8DauduzQdB04t89/1O/w1cDnyilFU=",
+  channelSecret: "4b27463ad60277f733c894fb0a16491d",
 };
 
 const client = new line.Client(config);
@@ -27,8 +27,8 @@ function handleEvent(event) {
     return Promise.resolve(null);
   }
 
-  // メッセージが「ハイロー」なら応答
-  if (event.message.text === "ハイロー") {
+  // メッセージが「/ハイロー」なら応答
+  if (event.message.text === "/ハイロー"or"/はいろー") {
     const result = Math.random() < 0.5 ? "High（あたり！）" : "Low（はずれ…）";
     return client.replyMessage(event.replyToken, {
       type: "text",
@@ -36,10 +36,10 @@ function handleEvent(event) {
     });
   }
 
-  // それ以外のメッセージは普通に返す
+  // それ以外のメッセージが入る場合
   return client.replyMessage(event.replyToken, {
     type: "text",
-    text: `「${event.message.text}」って言ったね！`,
+    text: ``,
   });
 }
 
