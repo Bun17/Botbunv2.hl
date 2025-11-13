@@ -58,3 +58,53 @@ function handleEvent(event) {
 }
 
 app.listen(PORT, () => console.log(`Hi-Lo Bot running on ${PORT}`));
+
+import express from "express";
+import line from "@line/bot-sdk";
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+const config = {
+  channelAccessToken: "ここにあなたのアクセストークン",
+  channelSecret: "ここにあなたのチャンネルシークレット"
+};
+
+const client = new line.Client(config);
+
+// 受け取るデータをJSONとして扱う
+app.use(express.json());
+
+// webhookエンドポイント
+app.post("/webhook", line.middleware(config), (req, res) => {
+  Promise.all(req.body.events.map(handleEvent)).then((result) =>
+    res.json(result)
+  );
+});
+
+// 🎲 ハイローゲームのロジック
+function handleEvent(event) {
+  if (event.type !== "message" || event.message.type !== "text") {
+    return Promise.resolve(null);
+  }
+
+  const userMessage = event.message.text.trim();
+
+  if (userMessage === "ハイロー") {
+    const card = Math.floor(Math.random() * 13) + 1; // 1〜13
+    const nextCard = Math.floor(Math.random() * 13) + 1;
+    const result = nextCard > card ? "HIGH!" : nextCard < card ? "LOW!" : "DRAW!";
+    const text = `🎰 あなたのカードは ${card}！\n次のカードは… ${nextCard}！\n結果は ${result}`;
+    return client.replyMessage(event.replyToken, { type: "text", text });
+  }
+
+  // 「ハイロー」以外のメッセージには説明を返す
+  return client.replyMessage(event.replyToken, {
+    type: "text",
+    text: "「ハイロー」と送ると1回だけ運試しできます🎲"
+  });
+}
+
+app.listen(PORT, () => {
+  console.log(`Server running on ${PORT}`);
+});
