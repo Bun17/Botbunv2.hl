@@ -5,8 +5,8 @@ export default async function handler(req, res) {
     return res.status(405).send("Method Not Allowed");
   }
 
-  const channelSecret = b43f9b8c72ca496bfc2406e8393aed2a;
-  const channelAccessToken = sLIkc+7yYR39ZOE1k24BPoxj+R1Lyqclru7wqVtHLMwxAtPqgFM5mWPsfj7njlXcgT7IhRK9YgwkbKqhyRfbJV1vnl2+upoPMMBK3nnkeu00fel3aCJe1sMEb6KAHMT1WUewnEv0L7ayU5P1n7uPXwdB04t89/1O/w1cDnyilFU=;
+const channelSecret = process.env.CHANNEL_SECRET;
+const channelAccessToken = process.env.CHANNEL_ACCESS_TOKEN;
 
   const signature = req.headers["x-line-signature"];
   const body = req.body;
